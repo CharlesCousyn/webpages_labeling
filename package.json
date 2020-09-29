@@ -1,0 +1,17 @@
+{
+  "name": "webpages_labeling",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "node -r esm main.js"
+  },
+  "keywords": [],
+  "author": "Charles Cousyn",
+  "license": "MIT",
+  "dependencies": {
+    "csv-parse": "^4.12.0",
+    "esm": "^3.2.25",
+    "jsonexport": "^3.0.1"
+  }
+}
