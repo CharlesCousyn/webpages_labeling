@@ -2,5 +2,5 @@
   "pathToWebPagesFolder": "C:/Users/Charles/WebstormProjects/webpages_retrieval/outputData/",
   "pathToOldDatasetFile": "./datasetGenreClass.csv",
   "pathToNewDatasetFile": "./datasetGenreClass.csv",
-  "classPossibleValues": ["descriptive, non descriptive"]
+  "classPossibleValues": ["descriptive", "non descriptive"]
 }

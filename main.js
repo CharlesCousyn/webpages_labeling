@@ -18,6 +18,29 @@ function getDataset()
     let text = filesSystem.readFileSync(GENERAL_CONFIG.pathToOldDatasetFile, { encoding: 'utf8'});
     return csvParse(text, {columns: true, skip_empty_lines: true});
 }
+function timeConversion(ms)
+{
+    let seconds = (ms / 1000).toFixed(1);
+    let minutes = (ms / (1000 * 60)).toFixed(1);
+    let hours = (ms / (1000 * 60 * 60)).toFixed(1);
+    let days = (ms / (1000 * 60 * 60 * 24)).toFixed(1);
+
+    if (seconds < 60) {
+        return seconds + " Sec";
+    } else if (minutes < 60) {
+        return minutes + " Min";
+    } else if (hours < 24) {
+        return hours + " Hrs";
+    } else {
+        return days + " Days"
+    }
+}
+
+function showProgress(currentNumberOfResults, totalNumberOfResults, beginTime)
+{
+    const timeElapsed = timeConversion(new Date() - beginTime);
+    console.log(`Progress ${currentNumberOfResults}/${totalNumberOfResults} (${100.0 * currentNumberOfResults/totalNumberOfResults} %) (${timeElapsed} elapsed)`);
+}
 
 async function labeWithUserInput(dataLine)
 {
@@ -63,13 +86,18 @@ async function labeWithUserInput(dataLine)
     const browser = await puppeteer.launch({headless: false, defaultViewport: null, args: ['--start-maximized']});
     let tab = await browser.newPage();
 
+    //Progress variables
+    let totalNumberOfResults = dataset.length;
+    let currentNumberOfResults = 0;
+    let initTime = new Date();
+    showProgress(currentNumberOfResults, totalNumberOfResults, initTime);
+
     for(let i = 0; i < dataset.length; i++)
     {
         //If not labelled
         if(!GENERAL_CONFIG.classPossibleValues.includes(dataset[i].class))
         {
             //Label it!!!
-
             let fileName = dataset[i].fileName;
 
             //Find associated web page
@@ -78,7 +106,7 @@ async function labeWithUserInput(dataLine)
             let folderName = array.join("_");
 
             //Open the tab with the associated web page
-            await tab.goto(`file://${GENERAL_CONFIG.pathToWebPagesFolder}${folderName}/${fileName}`);
+            await tab.setContent(filesSystem.readFileSync(`${GENERAL_CONFIG.pathToWebPagesFolder}${folderName}/${fileName}`, 'utf8'));
 
             //Wait for the decision of the human
             dataset[i] = await labeWithUserInput(dataset[i]);
@@ -90,6 +118,10 @@ async function labeWithUserInput(dataLine)
                 dataset = getDataset();
             }
         }
+
+        //Show progress
+        currentNumberOfResults++;
+        showProgress(currentNumberOfResults, totalNumberOfResults, initTime);
     }
 
     //Export new dataset
