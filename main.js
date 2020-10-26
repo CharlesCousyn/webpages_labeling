@@ -7,10 +7,10 @@ import GENERAL_CONFIG from "./configFiles/generalConfig.json";
 
 async function saveDataset(dataset)
 {
-    console.log("Saving dataset...")
+    //console.log("Saving dataset...")
     const csv = await jsonexport(dataset, {rowDelimiter: ","});
     filesSystem.writeFileSync(GENERAL_CONFIG.pathToNewDatasetFile, csv, "utf8");
-    console.log("Dataset saved!")
+    //console.log("Dataset saved!")
 }
 
 function getDataset()
@@ -49,15 +49,33 @@ async function labeWithUserInput(dataLine)
     return new Promise(resolve =>
         process.stdin.on('data', key =>
         {
-            if(key === "o")
+            if(key === "a")
             {
                 dataLine.class = "descriptive";
                 process.stdin.setRawMode(false);
                 resolve(dataLine);
             }
-            else if(key === "n")
+            else if(key === "z")
+            {
+                dataLine.class = "partially descriptive";
+                process.stdin.setRawMode(false);
+                resolve(dataLine);
+            }
+            else if(key === "e")
             {
                 dataLine.class = "non descriptive";
+                process.stdin.setRawMode(false);
+                resolve(dataLine);
+            }
+            else if(key === "r")
+            {
+                dataLine.class = "shit";
+                process.stdin.setRawMode(false);
+                resolve(dataLine);
+            }
+            else if(key === "t")
+            {
+                dataLine.class = "null";
                 process.stdin.setRawMode(false);
                 resolve(dataLine);
             }
@@ -94,6 +112,8 @@ async function labeWithUserInput(dataLine)
 
     for(let i = 0; i < dataset.length; i++)
     {
+        console.log(dataset[i].fileName);
+
         //If not labelled
         if(!GENERAL_CONFIG.classPossibleValues.includes(dataset[i].class))
         {
@@ -105,18 +125,26 @@ async function labeWithUserInput(dataLine)
             array.pop();
             let folderName = array.join("_");
 
-            //Open the tab with the associated web page
-            await tab.setContent(filesSystem.readFileSync(`${GENERAL_CONFIG.pathToWebPagesFolder}${folderName}/${fileName}`, 'utf8'));
 
-            //Wait for the decision of the human
-            dataset[i] = await labeWithUserInput(dataset[i]);
-
-            //Save progress every 5 webpages
-            if(i!== 0 && i%5 === 0)
+            try
             {
-                await saveDataset(dataset);
-                dataset = getDataset();
+                //Open the tab with the associated web page
+                //await tab.goto(`file://${GENERAL_CONFIG.pathToWebPagesFolder}${folderName}/${fileName}`);
+                await tab.setContent(filesSystem.readFileSync(`${GENERAL_CONFIG.pathToWebPagesFolder}${folderName}/${fileName}`, 'utf8'));
+                console.log("Ready");
+
+                //Wait for the decision of the human
+                dataset[i] = await labeWithUserInput(dataset[i]);
             }
+            catch (e)
+            {
+                console.error(e);
+                dataset[i].class = "null";
+            }
+
+            //Save progress every webpage
+            await saveDataset(dataset);
+            dataset = getDataset();
         }
 
         //Show progress
